@@ -1,29 +1,14 @@
-// src/api/youtube.ts
-import axios from 'axios';
-
-const API_KEY = import.meta.env.VITE_YOUTUBE_API_KEY;
-const BASE_URL = 'https://www.googleapis.com/youtube/v3/search';
-
-/**
- * YouTubeで検索し、最初の動画のIDを取得する
- */
-export const fetchVideoId = async (query: string): Promise<string | null> => {
-  try {
-    const response = await axios.get(BASE_URL, {
-      params: {
-        key: API_KEY,
-        part: 'snippet',
-        q: query,
-        type: 'video',
-        maxResults: 1,
-        videoCategoryId: 10, // 音楽カテゴリ
-      },
-    });
-
-    const item = response.data.items[0];
-    return item?.id?.videoId ?? null;
-  } catch (error) {
-    console.error('YouTube API エラー:', error);
-    return null;
-  }
-};
+export const fetchVideoSuggestions = async (query: string): Promise<{ id: string; title: string }[]> => {
+    const apiKey = 'AIzaSyAcix-hnNaQZF12aA086ZkazmYE1ct316M';
+    const encodedQuery = encodeURIComponent(`${query} music`);
+    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=20&q=${encodedQuery}&key=${apiKey}`;
+  
+    const response = await fetch(url);
+    const data = await response.json();
+  
+    return data.items.map((item: any) => ({
+      id: item.id.videoId,
+      title: item.snippet.title,
+    }));
+  };
+  

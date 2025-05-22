@@ -1,16 +1,16 @@
-// src/components/PlayerControls.tsx
 import { useEffect, useRef, useState } from 'react';
 
 type Props = {
   videoId: string | null;
+  isPlaying: boolean;
+  setIsPlaying: (val: boolean) => void;
 };
 
-const PlayerControls = ({ videoId }: Props) => {
-  const [isPlaying, setIsPlaying] = useState(true);
+const PlayerControls = ({ videoId, isPlaying, setIsPlaying }: Props) => {
   const [isMuted, setIsMuted] = useState(true);
-  const [progress, setProgress] = useState(0); // %
-  const [duration, setDuration] = useState(0); // 秒
-  const [currentTime, setCurrentTime] = useState(0); // 秒
+  const [progress, setProgress] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
 
   const playerRef = useRef<any>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -27,14 +27,16 @@ const PlayerControls = ({ videoId }: Props) => {
 
         playerRef.current = (window as any).YT.get(iframe.id);
 
-        setDuration(playerRef.current.getDuration());
-        setIsMuted(playerRef.current.isMuted?.());
-        setIsPlaying(playerRef.current.getPlayerState() === 1);
+        if (playerRef.current) {
+          setDuration(playerRef.current.getDuration?.() || 0);
+          setIsMuted(playerRef.current.isMuted?.() || false);
+          setIsPlaying(playerRef.current.getPlayerState?.() === 1);
+        }
 
         if (intervalRef.current) clearInterval(intervalRef.current);
         intervalRef.current = setInterval(() => {
-          const current = playerRef.current.getCurrentTime?.() || 0;
-          const total = playerRef.current.getDuration?.() || 0;
+          const current = playerRef.current?.getCurrentTime?.() || 0;
+          const total = playerRef.current?.getDuration?.() || 0;
           setCurrentTime(current);
           if (total > 0) setProgress((current / total) * 100);
         }, 1000);

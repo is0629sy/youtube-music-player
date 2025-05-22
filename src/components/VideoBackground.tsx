@@ -1,4 +1,3 @@
-// src/components/VideoBackground.tsx
 import { useEffect, useRef } from 'react';
 
 type Props = {
@@ -7,17 +6,32 @@ type Props = {
 
 const VideoBackground = ({ videoId }: Props) => {
   const playerRef = useRef<HTMLDivElement>(null);
+  const ytPlayer = useRef<any>(null);
 
   useEffect(() => {
-    const tag = document.createElement('script');
-    tag.src = 'https://www.youtube.com/iframe_api';
-    document.body.appendChild(tag);
+    const loadYouTubeAPI = () => {
+      return new Promise<void>((resolve) => {
+        if ((window as any).YT && (window as any).YT.Player) {
+          resolve();
+        } else {
+          const tag = document.createElement('script');
+          tag.src = 'https://www.youtube.com/iframe_api';
+          document.body.appendChild(tag);
+          (window as any).onYouTubeIframeAPIReady = () => resolve();
+        }
+      });
+    };
 
-    // グローバル関数としてAPIロード時に呼ばれるようにする
-    (window as any).onYouTubeIframeAPIReady = () => {
+    const initPlayer = async () => {
+      await loadYouTubeAPI();
+
       if (!playerRef.current) return;
 
-      new (window as any).YT.Player(playerRef.current, {
+      if (ytPlayer.current && ytPlayer.current.destroy) {
+        ytPlayer.current.destroy();
+      }
+
+      ytPlayer.current = new (window as any).YT.Player(playerRef.current, {
         videoId,
         width: '100%',
         height: '100%',
@@ -26,22 +40,24 @@ const VideoBackground = ({ videoId }: Props) => {
           controls: 0,
           modestbranding: 1,
           loop: 1,
-          playlist: videoId, // loop再生にはplaylist指定が必要
+          playlist: videoId,
           mute: 1,
           showinfo: 0,
         },
         events: {
           onReady: (event: any) => {
+            event.target.unMute(); // ミュート解除
             event.target.playVideo();
           },
         },
       });
     };
 
+    initPlayer();
+
     return () => {
-      // クリーンアップ（前の動画を削除）
-      if (playerRef.current) {
-        playerRef.current.innerHTML = '';
+      if (ytPlayer.current && ytPlayer.current.destroy) {
+        ytPlayer.current.destroy();
       }
     };
   }, [videoId]);
@@ -57,7 +73,7 @@ const VideoBackground = ({ videoId }: Props) => {
         overflow: 'hidden',
         zIndex: -1,
         pointerEvents: 'none',
-        opacity: 0.3, // 半透明感
+        opacity: 0.3,
       }}
     >
       <div

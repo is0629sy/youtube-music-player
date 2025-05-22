@@ -1,16 +1,26 @@
 import { useState } from 'react';
-import SearchBar from './components/SearchBar';
+import Search from './components/Search';
 import VideoBackground from './components/VideoBackground';
 import PlayerControls from './components/PlayerControls';
 
 function App() {
   const [videoId, setVideoId] = useState<string | null>(null);
+  const [isPlaying, setIsPlaying] = useState(true);
+
+  const handleVideoSelect = (id: string) => {
+    setVideoId(id);
+    setIsPlaying(true); // 新しい動画が選択されたら再生状態に
+  };
 
   return (
     <div className="app-container">
-      <SearchBar onSearch={(id: string) => setVideoId(id)} />
+      <Search onVideoSelect={handleVideoSelect} />
       {videoId && <VideoBackground videoId={videoId} />}
-      <PlayerControls videoId={videoId} />
+      <PlayerControls
+        videoId={videoId}
+        isPlaying={isPlaying}
+        setIsPlaying={setIsPlaying}
+      />
     </div>
   );
 }
